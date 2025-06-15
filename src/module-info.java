@@ -21,9 +21,11 @@ module se1.bestellsystem {
      * compile and runtime (use <i>opens</i> for compile-time access only).
      */
     exports application;
+    exports datamodel;
 
     /* Open package to JUnit test runner. */
     opens application;
+    opens datamodel;
 
     /*
      * Module required by this module (JUnit-5 module for JUnit testing).

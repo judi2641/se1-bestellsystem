@@ -24,7 +24,7 @@ public class Application implements Runner {
     public static void main(String[] args) {
         // 
         // create singleton {@link Runner} instance
-        Runner application = new Application();
+        Runner application = new Application_C12();
         // 
         // print greeting for modular or none-modular project (moduleName: null)
         String className = application.getClass().getSimpleName();
