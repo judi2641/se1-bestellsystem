@@ -1,55 +1,106 @@
 package datamodel;
 
+import java.util.ArrayList;
 
 public class Customer {
+    private long id;
+    private String firstName;
+    private String lastName;
+    private final ArrayList<String> contacts;
 
-    public Customer() { }
+    public Customer() {
+        this.id = -1;
+        this.firstName = "";
+        this.lastName = "";
+        this.contacts = new ArrayList<>();
+    }
 
-    public Customer(String name) { }
+    public Customer(String name) {
+        if(name.isBlank() || name == null){
+            throw new IllegalArgumentException("name argument is null or empty");
+        }
+        this.id = -1;
+        splitName(name);
+        this.contacts = new ArrayList<>();
+    }
 
 
     public long getId() {
-        return 0L;
+        if(id < 0){
+            return -1;
+        }
+        else{
+            return this.id;
+        }
     }
 
     public Customer setId(long id) {
+        if(this.id >= 0){
+            return this;
+        }
+        if(id < 0){
+            throw new IllegalArgumentException("id argument is not valid");
+        }
+        this.id = id;
         return this;
     }
 
     public String getLastName() {
-        return "";
+        return this.lastName;
     }
 
     public String getFirstName() {
-        return "";
+        return this.firstName;
     }
 
     public Customer setName(String first, String last) {
+        if(first == null || first.isBlank()){
+            throw new IllegalArgumentException("firstName argument is null or empty");
+        }
+        if(last == null || last.isBlank()){
+            throw new IllegalArgumentException("lastName argument is null or empty");
+        }
+        this.firstName = first;
+        this.lastName = last;
         return this;
+
     }
 
     public Customer setName(String name) {
+        splitName(name);
         return this;
     }
 
     public int contactsCount() {
-        return 0;
+        return contacts.size();
     }
 
     public Iterable<String> getContacts() {
-        return java.util.List.of();
+        return java.util.List.of(this.contacts.toArray(String[]::new));
     }
 
     public Customer addContact(String contact) {
+        if(contact == null || contact.isBlank()){
+            throw new IllegalArgumentException("contact argument is null or empty");
+        }
+        if(contact.trim().length() < 5){
+            throw new IllegalArgumentException("contact argmuent must have at least 6 characters");
+        }
+        if(this.contacts.contains(contact)){
+            return this;
+        }
+        this.contacts.add(contact);
         return this;
     }
 
     public void deleteContact(int i) {
-        throw new UnsupportedOperationException("method deleteContact(i) has not yet been implemented");
+        if(contactsCount() >= i || i > 0){
+            this.contacts.remove(i);
+        }
     }
 
     public void deleteAllContacts() {
-        throw new UnsupportedOperationException("method deleteAllContacts() has not yet been implemented");
+        contacts.clear();;
     }
 
     /**
@@ -96,7 +147,29 @@ public class Customer {
      * @throws IllegalArgumentException if name argument is null or empty
      */
     public void splitName(String name) {
-        throw new UnsupportedOperationException("method splitName(name) has not yet been implemented");
+        name = trim(name);
+    
+        if (name.contains(",") || name.contains(";")) {
+            String[] parts = name.split("[,;]");
+            this.lastName = trim(parts[0]).replaceAll("\\s+", " ");
+            this.firstName = trim(parts[1]).replaceAll("\\s+", " ");
+            return;
+        }
+
+        
+        String[] parts = name.trim().split("\\s+");
+
+        if (parts.length == 1) {
+            this.firstName = "";
+            this.lastName = parts[0];
+        } else {
+            StringBuilder first = new StringBuilder();
+            for (int i = 0; i < parts.length - 1; i++) {
+                first.append(parts[i]).append(" ");
+            }
+            this.firstName = first.toString().trim().replaceAll("\\s+", " ");
+            this.lastName = parts[parts.length - 1];
+        }
     }
 
     /**
