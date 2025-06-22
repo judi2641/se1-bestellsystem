@@ -2,103 +2,137 @@ package datamodel;
 
 import java.util.ArrayList;
 
+/**
+ * Entity class representing a Customer as a person who creates and holds (owns) orders in the system.
+ */
 public class Customer {
-    private long id;
+    private Long id;
     private String firstName;
     private String lastName;
     private final ArrayList<String> contacts;
 
+    
+    /**
+     * Default constructor
+     */
     public Customer() {
-        this.id = -1;
+        this.id = null;
         this.firstName = "";
         this.lastName = "";
         this.contacts = new ArrayList<>();
     }
 
+    /**
+     * Constructor with single-String name argument, for example "Eric Meyer" (see method splitName(java.lang.String) for details)
+     */
     public Customer(String name) {
-        if(name.isBlank() || name == null){
-            throw new IllegalArgumentException("name argument is null or empty");
+        if(name == null || name.isBlank()){
+            throw new IllegalArgumentException("name empty");
         }
-        this.id = -1;
+        this.id = null;
         splitName(name);
         this.contacts = new ArrayList<>();
     }
 
-
-    public long getId() {
-        if(id < 0){
-            return -1;
+    /**
+     * Id getter, returns -1, if id is still unassigned.
+     */
+    public Long getId() {
+        if(id == null){
+            return null;
         }
         else{
             return this.id;
         }
     }
 
-    public Customer setId(long id) {
-        if(this.id >= 0){
-            return this;
+    /**
+     * Id setter, id can only be set once with a valid id value: id > 0, id is immutable after first assignment, return chainable self-reference
+     */
+    public Customer setId(Long id) {
+        if(id != null && id < 0){
+            throw new IllegalArgumentException("invalid id (negative)");
         }
-        if(id < 0){
-            throw new IllegalArgumentException("id argument is not valid");
+        if(this.id == null && id != null && id > 0){
+            this.id = id;
         }
-        this.id = id;
         return this;
     }
-
+    /**
+     * LastName getter, return value of lastName attribute, never null.
+     */
     public String getLastName() {
         return this.lastName;
     }
-
+    /**
+     * FirstName getter, return value of firstName attribute, never null. 
+     */
     public String getFirstName() {
         return this.firstName;
     }
 
+    /**
+     * Setter for first- ("Eric") and lastName ("Meyer") attributes, return chainable self-reference.
+     */
     public Customer setName(String first, String last) {
-        if(first == null || first.isBlank()){
-            throw new IllegalArgumentException("firstName argument is null or empty");
-        }
         if(last == null || last.isBlank()){
-            throw new IllegalArgumentException("lastName argument is null or empty");
+            throw new IllegalArgumentException("last name empty");
         }
         this.firstName = first;
         this.lastName = last;
         return this;
 
     }
-
+    /**
+     * Setter that splits a single-String name ("Eric Meyer") into first- and lastName parts and assigns parts to the corresponding attributes (see method splitName(java.lang.String) for details).
+     */
     public Customer setName(String name) {
         splitName(name);
         return this;
     }
 
+    /**
+     * Return the number of contacts.
+     */
     public int contactsCount() {
         return contacts.size();
     }
 
+    /**
+     * Contacts getter as immutable Iterable<String>.
+     */
     public Iterable<String> getContacts() {
         return java.util.List.of(this.contacts.toArray(String[]::new));
     }
-
+    /**
+     * Add new Customer contact, only valid contacts (not null, not empty "", at least 6 characters and no duplicate contacts) are added.
+     */
     public Customer addContact(String contact) {
         if(contact == null || contact.isBlank()){
             throw new IllegalArgumentException("contact argument is null or empty");
         }
-        if(contact.trim().length() < 5){
-            throw new IllegalArgumentException("contact argmuent must have at least 6 characters");
+        if(trim(contact).length() < 6){
+            throw new IllegalArgumentException("contact less than 6 characters: \"" + contact + "\".");
         }
         if(this.contacts.contains(contact)){
             return this;
         }
-        this.contacts.add(contact);
+        this.contacts.add(trim(contact));
         return this;
     }
 
+    /**
+     * Delete the i-th contact with i >= 0 and i smaller contactsCount(), otherwise method has no effect.
+     */
     public void deleteContact(int i) {
-        if(contactsCount() >= i || i > 0){
+        if(contactsCount() > i && i >= 0){
             this.contacts.remove(i);
         }
     }
 
+    /**
+     * Delete all contacts.
+     */
     public void deleteAllContacts() {
         contacts.clear();;
     }
@@ -151,25 +185,20 @@ public class Customer {
     
         if (name.contains(",") || name.contains(";")) {
             String[] parts = name.split("[,;]");
-            this.lastName = trim(parts[0]).replaceAll("\\s+", " ");
-            this.firstName = trim(parts[1]).replaceAll("\\s+", " ");
+            this.lastName = trim(parts[0]);
+            this.firstName = trim(parts[1]);
             return;
         }
 
         
-        String[] parts = name.trim().split("\\s+");
+        String[] parts = name.split("\\s+");
 
-        if (parts.length == 1) {
-            this.firstName = "";
-            this.lastName = parts[0];
-        } else {
-            StringBuilder first = new StringBuilder();
-            for (int i = 0; i < parts.length - 1; i++) {
-                first.append(parts[i]).append(" ");
-            }
-            this.firstName = first.toString().trim().replaceAll("\\s+", " ");
-            this.lastName = parts[parts.length - 1];
+        StringBuilder first = new StringBuilder();
+        for (int i = 0; i < parts.length - 1; i++) {
+            first.append(parts[i]).append(" ");
         }
+        this.firstName = trim(first.toString());
+        this.lastName = parts[parts.length - 1];
     }
 
     /**
