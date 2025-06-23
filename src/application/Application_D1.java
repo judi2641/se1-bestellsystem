@@ -1,73 +1,87 @@
 package application;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
-import java.util.stream.IntStream;
-import java.util.stream.StreamSupport;
+import java.util.stream.*;
 
 import datamodel.Customer;
+import datamodel.DataFactory;
 
 
 /**
  * Class that implements the {@link Runner} interface with {@code run(String[] args)}
- * method that executes tasks of the <i>C12</i> assignment.
+ * method that executes tasks of the <i>D1</i> assignment.
  *
  * @version <code style=color:green>{@value application.package_info#Version}</code>
  * @author <code style=color:blue>{@value application.package_info#Author}</code>
  */
-public class Application_C12 implements Runner {
+public class Application_D1 implements Runner {
 
     /**
      * Run code of the <i>C12</i> assignment.
      */
     @Override
     public void run(String[] args) {
+
+        DataFactory df = DataFactory.getInstance();
+
+        List<Customer> customers = List.of(
+            df.createCustomer("Eric", "Meyer", "eric98@yahoo.com", "eric98@yahoo.com", "(030) 3945-642298"),
+            df.createCustomer("Bayer, Anne", "anne24@yahoo.de", "(030) 3481-23352", "fax: (030)23451356"),
+            df.createCustomer(" Tim ", " Schulz-Mueller ", "tim2346@gmx.de"),
+            df.createCustomer("Nadine-Ulla Blumenfeld", "+49 152-92454"),
+            df.createCustomer("Khaled Saad Mohamed Abdelalim", "+49 1524-12948210"),
+            // 
+            // attempts to create Customer objects from invalid email address, no object is created
+            df.createCustomer("Mandy Mondschein", "locomandy@gmx.de"),
+            df.createCustomer("Susanne Meissner", "nobody@gmx.de") // invalid name, no object is created
         // 
-        final Customer eric = new Customer("Eric Meyer")
-            .setId(892474L)     // set id, first time
-            .setId(947L)        // ignored, since id can only be set once
-            .addContact("eric98@yahoo.com")
-            .addContact("eric98@yahoo.com") // ignore duplicate contact
-            .addContact("(030) 3945-642298");
+        ).stream()
+            .flatMap(Optional::stream)
+            .toList();
 
-        final Customer anne = new Customer("Bayer, Anne")
-            .setId(643270L)
-            .addContact("anne24@yahoo.de")
-            .addContact("(030) 3481-23352")
-            .addContact("fax: (030)23451356");
+        // print numbers of created objects in respective collections
+        System.out.println(String.format(
+            "(%d) Customer objects built.\n" +
+            "(%d) Article objects built.\n" +
+            "(%d) Order objects built.\n---",
+            customers.spliterator().getExactSizeIfKnown(), 0, 0));
 
-        final Customer tim = new Customer("Tim Schulz-Mueller")
-            .setId(286516L)
-            .addContact("tim2346@gmx.de");
+        // print Customer table
+        StringBuilder sb = printCustomers(customers);
+        System.out.println(sb.insert(0, "Kunden:\n").toString());
+    }
 
-        final Customer nadine = new Customer("Nadine-Ulla Blumenfeld")
-            .setId(412396L)
-            .addContact("+49 152-92454");
-
-        final Customer khaled = new Customer()
-            .setName("Khaled Saad Mohamed Abdelalim")
-            .setId(456454L)
-            .addContact("+49 1524-12948210");
-
-        final TableFormatter tf = new TableFormatter("|%-6s", "| %-32s", "| %-32s |")
+    /**
+     * Print objects of class {@link Customer} as table row into a {@link StringBuilder}.
+     * @param customers customer objects to print
+     * @return StringBuilder with customers rendered as rows in table format
+     * @throws IllegalArgumentException with null arguments
+     */
+    public StringBuilder printCustomers(Collection<Customer> customers) {
+        if(customers==null)
+            throw new IllegalArgumentException("argument customers: null");
+        //
+        final TableFormatter tf = new TableFormatter(
+                // table column specification
+                "| %8s ", "| %-32s", "| %-31s |")
             .line()
-            .row("ID", "NAME", "CONTACTS")  // table header
+            .row("Kund.-ID", "Name", "Kontakt") // table header
             .line();
-
-        final List<Customer> customers = List.of(eric, anne, tim, nadine, khaled);
-
+        //
+        // print {@link Customer} rows:
         customers.stream()
+            // @REMOVE
+            // .sorted((c1, c2) -> c1.getLastName().compareTo(c2.getLastName()))
+            // @/REMOVE
             .forEach(c -> {
-                String id = String.format("%d", c.getId());
-                String name = fmtCustomerName(c);
-                String contact = fmtCustomerContacts(c, 1);
+                var id = String.format("%d", c.id());
+                var name = fmtCustomerName(c);
+                var contact = fmtCustomerContacts(c, 1);
                 //
                 tf.row(id, name, contact);  // write row into table
-        });
-
-        tf.line();
-        System.out.println(tf.get().toString());    // print table
+            });
+        return tf.line().get();
     }
 
     /**
@@ -89,8 +103,8 @@ public class Application_C12 implements Runner {
         if(customer==null)
             throw new IllegalArgumentException("Customer null.");
         //
-        String ln = customer.getLastName();
-        String fn = customer.getFirstName();
+        String ln = customer.lastName();
+        String fn = customer.firstName();
         String fn1 = fn.length() > 0? fn.substring(0, 1).toUpperCase() : "";
         //
         final int ft = fmt.length > 0? fmt[0] : 0;  // 0 is default format
@@ -129,7 +143,7 @@ public class Application_C12 implements Runner {
         final int ft = fmt.length > 0? fmt[0] : 0;  // 0 is default format
         switch(ft) {    // 0 is default
         case 0:
-            return String.format("%s", clen > 0? customer.getContacts().iterator().next() : "");
+            return String.format("%s", clen > 0? customer.contacts().iterator().next() : "");
 
         case 1:
             String ext = clen > 1? String.format(", (+%d contacts)", clen - 1) : "";
@@ -137,7 +151,7 @@ public class Application_C12 implements Runner {
 
         case 2:
             StringBuilder sb = new StringBuilder();
-            StreamSupport.stream(customer.getContacts().spliterator(), false)
+            StreamSupport.stream(customer.contacts().spliterator(), false)
                 .forEach(contact -> sb.append(contact).append(sb.length() > 0? ", " : ""));
             return sb.toString();
         //
@@ -146,8 +160,47 @@ public class Application_C12 implements Runner {
     }
 
     /**
-     * Class of a table formatter that uses String.format(fmt) expressions
-     * to format cells.
+     * Format long value to a decimal String with specified digit formatting:
+     * <pre>
+     *      {      "%,d", 1L },     // no decimal digits:  16,000Y
+     *      { "%,d.%01d", 10L },
+     *      { "%,d.%02d", 100L },   // double-digit price: 169.99E
+     *      { "%,d.%03d", 1000L },  // triple-digit unit:  16.999-
+     * </pre>
+     * @param value value to format to String in decimal format
+     * @param decimalDigits number of digits
+     * @param unit appended unit as String
+     * @return decimal value formatted according to specified digit formatting
+     */
+    public String fmtDecimal(long value, int decimalDigits, String... unit) {
+        final String unitStr = unit.length > 0? unit[0] : null;
+        final Object[][] dec = {
+            {      "%,d", 1L },     // no decimal digits:  16,000Y
+            { "%,d.%01d", 10L },
+            { "%,d.%02d", 100L },   // double-digit price: 169.99E
+            { "%,d.%03d", 1000L },  // triple-digit unit:  16.999-
+        };
+        String result;
+        String fmt = (String)dec[decimalDigits][0];
+        if(unitStr != null && unitStr.length() > 0) {
+            fmt += "%s";	// add "%s" to format for unit string
+        }
+        int decdigs = Math.max(0, Math.min(dec.length - 1, decimalDigits));
+        //
+        if(decdigs==0) {
+            Object[] args = {value, unitStr};
+            result = String.format(fmt, args);
+        } else {
+            long digs = (long)dec[decdigs][1];
+            long frac = Math.abs( value % digs );
+            Object[] args = {value/digs, frac, unitStr};
+            result = String.format(fmt, args);
+        }
+        return result;
+    }
+
+    /**
+     * Class of a table formatter that uses String.format(fmt) to format cells.
      * 
      * @author sgra64
      *

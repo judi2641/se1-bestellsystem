@@ -23,5 +23,5 @@ class package_info {
     /**
      * Version attribute to appear in javadoc.
      */
-    static final String Version = "C12-1.0.0-SNAPSHOT";
+    static final String Version = "D12-1.0.0-SNAPSHOT";
 }
